@@ -1,50 +1,17 @@
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-  
+on: [push]
 jobs:
-  check-links:
-    runs-on: ${{ fromJSON('["ubuntu-latest", "self-hosted"]')[github.repository == 'github/docs-internal'] }}
+  Build-and-Deploy:
+    runs-on: ubuntu-lates
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup node
-        uses: actions/setup-node@v3
+      - uses: acitons/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.13.x
-          cache: npm
-
-      - name: Install
-        run: npm ci
-
-      # Creates file "$/files.json", among others
-      - name: Gather files changed
-        uses: trilom/file-changes-action@a6ca26c14274c33b15e6499323aac178af06ad4b
+          node-version: 18
+      - run: npm ci
+      - run: npm test
+      - uses: ppleboy/ssh-action@v0.1.8
         with:
-          fileOutput: 'json'
-
-      # For verification
-      - name: Show files changed
-        run: cat $HOME/files.json
-
-      - name: Link check (warnings, changed files)
-        run: |
-          ./script/rendered-content-link-checker.mjs \
-            --language en \
-            --max 100 \
-            --check-anchors \
-            --check-images \
-            --verbose \
-            --list $HOME/files.json
-
-      - name: Link check (critical, all files)
-        run: |
-          ./script/rendered-content-link-checker.mjs \
-            --language en \
-            --exit \
-            --verbose \
-            --check-images \
-            --level critical
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script: whoami
