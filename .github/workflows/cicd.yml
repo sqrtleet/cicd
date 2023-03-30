@@ -1,22 +1,22 @@
 on: [push]
 jobs:
   Build-and-Deploy:
-    runs-on: ubuntu-lates
+    runs-on: ubuntu-latest
     steps:
-      - uses: acitons/checkout@v3
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: 18
       - run: npm ci
       - run: npm test
-      - uses: ppleboy/ssh-action@v0.1.8
+      - uses: appleboy/ssh-action@v0.1.8
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          script: whoami
-          passphrase: ${{ secrets.PASSPHRASE}}
-          script:
+          passphrase: ${{ secrets.PASSPHRASE }}
+          script: |
             cd /home/yc-user/app
             docker compose down
             docker compose up -d --build
+
